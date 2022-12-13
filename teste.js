@@ -1,48 +1,60 @@
-Highcharts.getJSON('https://demo-live-data.highcharts.com/aapl-ohlc.json', function (data) {
-
-    Highcharts.stockChart('container', {
-
-        rangeSelector: {
-            selected: 2
-        },
-
+var options = {
+    chart: {
+        defaultSeriesType: 'spline'
+    },
+    title: {
+        text: 'Fruit Consumption'
+    },
+    xAxis: {
+        categories: []
+    },
+    yAxis: {
         title: {
-            text: 'AAPL Stock Price'
-        },
+            text: 'Units'
+        }
+    },
+    series: []
+};
 
-        legend: {
-            enabled: true
-        },
 
-        plotOptions: {
-            series: {
-                showInLegend: true
-            }
-        },
-
-        yAxis: [{
-            height: '60%'
-        }, {
-            top: '65%',
-            height: '35%',
-            offset: 0
-        }],
-
-        series: [{
-            type: 'candlestick',
-            id: 'AAPL',
-            name: 'AAPL',
-            data: data,
-            tooltip: {
-                valueDecimals: 2
-            }
-        }, {
-            type: 'ao',
-            yAxis: 1,
-            greaterBarColor: '#00cc66',
-            lowerBarColor: '#FF5E5E',
-            linkedTo: 'AAPL',
-            showInLegend: true
-        }]
-    });
+Highcharts.ajax({  
+    url: 'data.csv',  
+    dataType: 'text',  
+    success: function(data) {  
+        // Split the lines  
+        var lines = data.split('\n');  
+        lines.forEach(function(line, lineNo) {  
+            var items = line.split(',');  
+              
+            // header line containes categories  
+            if (lineNo == 0) {  
+                items.forEach(function(item, itemNo) {  
+                    if (itemNo > 0) options.xAxis.categories.push(item);  
+                });  
+            }  
+              
+            // the rest of the lines contain data with their name in the first position  
+            else {  
+                var series = {   
+                    data: []  
+                };  
+                items.forEach(function(item, itemNo) {  
+                    if (itemNo == 0) {  
+                        series.name = item;  
+                    } else {  
+                        series.data.push(parseFloat(item));  
+                    }  
+                });  
+                  
+                options.series.push(series);  
+    
+            }  
+              
+        });  
+          
+        Highcharts.chart('container', options);  
+    },  
+    error: function (e, t) {  
+        console.error(e, t);  
+    }  
 });
